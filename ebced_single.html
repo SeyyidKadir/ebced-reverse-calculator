@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ebced Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Amiri:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --black:       #050a07;
+  --black-2:     #0b1410;
+  --black-3:     #111e17;
+  --black-4:     #1a2e22;
+  --emerald:     #10b974;
+  --emerald-dim: #0d9960;
+  --emerald-dark:#084d30;
+  --emerald-glow:#10b97433;
+  --emerald-faint:#10b97412;
+  --text-bright: #e8f5ee;
+  --text-mid:    #7ab896;
+  --text-dim:    #3d6b52;
+  --border:      #1e3d2b;
+  --border-glow: #10b97455;
+  --mono:        'JetBrains Mono', monospace;
+  --serif:       'Cinzel', serif;
+  --arabic:      'Amiri', serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--text-bright);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.35; pointer-events: none; z-index: 0;
+}
+.bg-glow {
+  position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, var(--emerald-glow) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+header {
+  position: relative; z-index: 10;
+  padding: 2.5rem 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-wrap { display: flex; align-items: center; gap: 1.5rem; }
+.logo-ar {
+  font-family: var(--arabic); font-size: 3.5rem;
+  color: var(--emerald); line-height: 1;
+  text-shadow: 0 0 30px var(--emerald-glow), 0 0 60px var(--emerald-glow);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 20px var(--emerald-glow), 0 0 40px var(--emerald-glow); }
+  50%       { text-shadow: 0 0 40px var(--emerald), 0 0 80px var(--emerald-glow); }
+}
+.logo-text h1 {
+  font-family: var(--serif); font-size: 2.2rem; font-weight: 900;
+  letter-spacing: 0.4em; color: var(--text-bright); line-height: 1;
+}
+.logo-text p {
+  font-size: 0.65rem; letter-spacing: 0.25em; color: var(--text-mid);
+  text-transform: uppercase; margin-top: 0.25rem;
+}
+main {
+  position: relative; z-index: 10;
+  max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+.input-card {
+  background: var(--black-2); border: 1px solid var(--border);
+  border-radius: 2px; padding: 2rem;
+  box-shadow: 0 0 40px var(--emerald-faint);
+  position: relative; overflow: hidden;
+}
+.input-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--emerald), transparent);
+}
+.input-row { margin-bottom: 1.5rem; }
+.input-row label, .option-group > label {
+  display: block; font-size: 0.7rem; letter-spacing: 0.2em;
+  color: var(--text-mid); text-transform: uppercase; margin-bottom: 0.5rem;
+}
+.input-row input[type="number"] {
+  width: 100%; background: var(--black-3); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--emerald); font-family: var(--mono);
+  font-size: 2rem; font-weight: 300; padding: 0.75rem 1rem; outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s; letter-spacing: 0.1em;
+}
+.input-row input[type="number"]:focus {
+  border-color: var(--emerald-dim); box-shadow: 0 0 20px var(--emerald-faint);
+}
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+@media (max-width: 600px) {
+  .options-grid { grid-template-columns: 1fr 1fr; }
+  .toggle-group { grid-column: span 2; }
+}
+.option-group input[type="number"], .option-group select {
+  width: 100%; background: var(--black-3); border: 1px solid var(--border);
+  border-radius: 2px; color: var(--text-bright); font-family: var(--mono);
+  font-size: 0.85rem; padding: 0.5rem 0.75rem; outline: none;
+  transition: border-color 0.3s; appearance: none;
+}
+.option-group select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%2310b974'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2rem;
+}
+.option-group input:focus, .option-group select:focus { border-color: var(--emerald-dim); }
+.toggle-group { display: flex; flex-direction: column; }
+.toggle-wrap { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem; }
+.toggle-wrap input[type="checkbox"] { display: none; }
+.toggle {
+  position: relative; display: inline-block;
+  width: 46px; height: 24px; background: var(--black-4);
+  border: 1px solid var(--border); border-radius: 24px; cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+}
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; background: var(--text-dim);
+  border-radius: 50%; transition: transform 0.3s, background 0.3s;
+}
+#allowRepeat:checked + .toggle { background: var(--emerald-dark); border-color: var(--emerald-dim); }
+#allowRepeat:checked + .toggle::after { transform: translateX(22px); background: var(--emerald); }
+.btn-calculate {
+  width: 100%; background: transparent; border: 1px solid var(--emerald-dim);
+  border-radius: 2px; color: var(--emerald); font-family: var(--serif);
+  font-size: 1rem; font-weight: 600; letter-spacing: 0.3em; padding: 1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 0.75rem; transition: all 0.3s; text-transform: uppercase;
+  position: relative; overflow: hidden;
+}
+.btn-calculate::before {
+  content: ''; position: absolute; inset: 0; background: var(--emerald-faint);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+}
+.btn-calculate:hover::before { transform: scaleX(1); }
+.btn-calculate:hover { border-color: var(--emerald); box-shadow: 0 0 30px var(--emerald-glow); color: var(--text-bright); }
+.btn-icon { font-size: 1.1rem; animation: rotate-icon 4s linear infinite; }
+@keyframes rotate-icon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.message-box {
+  margin-top: 1.5rem; padding: 1rem 1.5rem; background: var(--black-2);
+  border: 1px solid var(--border); border-radius: 2px; font-size: 0.85rem;
+  letter-spacing: 0.05em; color: var(--text-mid); text-align: center;
+}
+.message-box.error { border-color: #6b2020; color: #e07070; background: #1a0c0c; }
+.results-section { margin-top: 2rem; animation: fade-in 0.4s ease; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.results-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+}
+.results-meta { display: flex; align-items: center; gap: 1rem; }
+#resultsTitle { font-family: var(--serif); font-size: 0.9rem; letter-spacing: 0.15em; color: var(--text-mid); }
+.count-badge {
+  background: var(--emerald-dark); border: 1px solid var(--emerald-dim);
+  color: var(--emerald); font-size: 0.7rem; letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem; border-radius: 2px;
+}
+.btn-reset {
+  background: transparent; border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text-dim); font-family: var(--mono); font-size: 0.7rem;
+  letter-spacing: 0.15em; padding: 0.4rem 0.8rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-reset:hover { border-color: #6b2020; color: #e07070; }
+.results-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.result-item {
+  background: var(--black-2); border: 1px solid var(--border); border-radius: 2px;
+  padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; animation: slide-in 0.3s ease; transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
+.result-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--emerald); opacity: 0; transition: opacity 0.2s;
+}
+.result-item:hover { border-color: var(--border-glow); box-shadow: 0 0 15px var(--emerald-faint); }
+.result-item:hover::before { opacity: 1; }
+.result-item.direct {
+  border-color: var(--emerald-dark);
+  background: linear-gradient(90deg, #0b1e14, var(--black-2));
+}
+.result-item.direct::before { opacity: 1; }
+@keyframes slide-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.result-arabic {
+  font-family: var(--arabic); font-size: 2rem; color: var(--emerald);
+  direction: rtl; text-align: right; letter-spacing: 0.1em; line-height: 1.2; flex: 1;
+}
+.result-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; }
+.result-formula { font-size: 0.7rem; color: var(--text-mid); letter-spacing: 0.05em; direction: ltr; }
+.result-count { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.1em; }
+.direct-badge {
+  font-size: 0.6rem; letter-spacing: 0.15em; color: var(--emerald);
+  border: 1px solid var(--emerald-dark); padding: 0.15rem 0.4rem;
+  border-radius: 2px; text-transform: uppercase;
+}
+.results-footer { margin-top: 1.5rem; display: flex; justify-content: center; }
+.btn-continue {
+  background: transparent; border: 1px solid var(--emerald-dim); border-radius: 2px;
+  color: var(--emerald); font-family: var(--mono); font-size: 0.8rem;
+  letter-spacing: 0.2em; padding: 0.75rem 2rem; cursor: pointer;
+  display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s;
+}
+.btn-continue:hover { background: var(--emerald-faint); box-shadow: 0 0 20px var(--emerald-glow); }
+.btn-continue .arrow { animation: bounce 1.5s ease-in-out infinite; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+.exhausted-msg {
+  font-size: 0.75rem; letter-spacing: 0.2em; color: var(--text-dim);
+  padding: 1rem; text-align: center;
+}
+.table-section {
+  position: relative; z-index: 10; max-width: 780px;
+  margin: 2rem auto; padding: 0 1.5rem 3rem;
+}
+.table-title {
+  font-family: var(--serif); font-size: 0.85rem; letter-spacing: 0.3em;
+  color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; text-align: center;
+}
+.ebced-table { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
+@media (max-width: 500px) { .ebced-table { grid-template-columns: repeat(4, 1fr); } }
+.ebced-cell {
+  background: var(--black-2); border: 1px solid var(--border); border-radius: 2px;
+  padding: 0.6rem 0.4rem; text-align: center; transition: all 0.2s; cursor: default;
+}
+.ebced-cell:hover { border-color: var(--emerald-dim); background: var(--black-3); }
+.ebced-cell .ar { font-family: var(--arabic); font-size: 1.4rem; color: var(--emerald); display: block; line-height: 1.2; }
+.ebced-cell .val { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.05em; display: block; margin-top: 0.2rem; }
+.ebced-cell .name { font-size: 0.55rem; color: var(--text-dim); opacity: 0.6; display: block; }
+footer {
+  position: relative; z-index: 10; text-align: center; padding: 1.5rem;
+  border-top: 1px solid var(--border); font-size: 0.65rem;
+  letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--emerald-dark); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--emerald-dim); }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <header>
+    <div class="logo-wrap">
+      <span class="logo-ar">أبجد</span>
+      <div class="logo-text">
+        <h1>EBCED</h1>
+        <p>Numerical Revelation Engine</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="input-section">
+      <div class="input-card">
+        <div class="input-row">
+          <label for="numberInput">Enter Number</label>
+          <input type="number" id="numberInput" placeholder="e.g. 200" autocomplete="off" />
+        </div>
+        <div class="options-grid">
+          <div class="option-group">
+            <label>Results per page</label>
+            <input type="number" id="pageSize" value="5" min="1" max="50" />
+          </div>
+          <div class="option-group">
+            <label>Sort by</label>
+            <select id="sortMode">
+              <option value="fewest">Fewest letters first</option>
+              <option value="highest">Highest value first</option>
+              <option value="lowest">Lowest value first</option>
+            </select>
+          </div>
+          <div class="option-group toggle-group">
+            <label>Allow repeated letters</label>
+            <div class="toggle-wrap">
+              <input type="checkbox" id="allowRepeat" />
+              <label for="allowRepeat" class="toggle"></label>
+            </div>
+          </div>
+        </div>
+        <button id="calculateBtn" class="btn-calculate">
+          <span class="btn-text">Calculate</span>
+          <span class="btn-icon">◈</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="results-section" id="resultsSection" style="display:none;">
+      <div class="results-header">
+        <div class="results-meta">
+          <span id="resultsTitle"></span>
+          <span id="resultsCount" class="count-badge"></span>
+        </div>
+        <button id="resetBtn" class="btn-reset">✕ Reset</button>
+      </div>
+      <div id="resultsList" class="results-list"></div>
+      <div id="resultsFooter" class="results-footer">
+        <button id="continueBtn" class="btn-continue" style="display:none;">
+          <span>Load More</span><span class="arrow">↓</span>
+        </button>
+        <div id="exhaustedMsg" class="exhausted-msg" style="display:none;">
+          ◈ All combinations exhausted
+        </div>
+      </div>
+    </section>
+
+    <div id="messageBox" class="message-box" style="display:none;"></div>
+  </main>
+
+  <section class="table-section">
+    <h2 class="table-title">Classical Ebced Table</h2>
+    <div class="ebced-table" id="ebcedTable"></div>
+  </section>
+
+  <footer>
+    <p>Classical Arabic Abjad · 28 Letters · Immutable Values</p>
+  </footer>
+
+<script>
+const EBCED = [
+  { ar: 'أ', name: 'Alif',  val: 1   },
+  { ar: 'ب', name: 'Ba',    val: 2   },
+  { ar: 'ج', name: 'Jim',   val: 3   },
+  { ar: 'د', name: 'Dal',   val: 4   },
+  { ar: 'ه', name: 'Ha',    val: 5   },
+  { ar: 'و', name: 'Waw',   val: 6   },
+  { ar: 'ز', name: 'Zay',   val: 7   },
+  { ar: 'ح', name: 'Ha2',   val: 8   },
+  { ar: 'ط', name: 'Ta',    val: 9   },
+  { ar: 'ي', name: 'Ya',    val: 10  },
+  { ar: 'ك', name: 'Kaf',   val: 20  },
+  { ar: 'ل', name: 'Lam',   val: 30  },
+  { ar: 'م', name: 'Mim',   val: 40  },
+  { ar: 'ن', name: 'Nun',   val: 50  },
+  { ar: 'س', name: 'Sin',   val: 60  },
+  { ar: 'ع', name: 'Ayn',   val: 70  },
+  { ar: 'ف', name: 'Fa',    val: 80  },
+  { ar: 'ص', name: 'Sad',   val: 90  },
+  { ar: 'ق', name: 'Qaf',   val: 100 },
+  { ar: 'ر', name: 'Ra',    val: 200 },
+  { ar: 'ش', name: 'Shin',  val: 300 },
+  { ar: 'ت', name: 'Ta2',   val: 400 },
+  { ar: 'ث', name: 'Tha',   val: 500 },
+  { ar: 'خ', name: 'Kha',   val: 600 },
+  { ar: 'ذ', name: 'Dhal',  val: 700 },
+  { ar: 'ض', name: 'Dad',   val: 800 },
+  { ar: 'ظ', name: 'Dha',   val: 900 },
+  { ar: 'غ', name: 'Ghayn', val: 1000}
+];
+
+let generator     = null;
+let generatorDone = false;
+let totalShown    = 0;
+let lastParams    = null;
+
+function sanitize(raw) {
+  let n = parseFloat(raw);
+  if (isNaN(n)) return null;
+  n = Math.abs(n);
+  n = Math.round(n);
+  return n;
+}
+
+function* combinationGenerator(target, allowRepeat) {
+  const stack = [{ indices: [], sum: 0, nextStart: 0 }];
+  while (stack.length > 0) {
+    const { indices, sum, nextStart } = stack.pop();
+    if (sum === target) { yield buildResult(indices); continue; }
+    for (let i = nextStart; i < EBCED.length; i++) {
+      const newSum = sum + EBCED[i].val;
+      if (newSum > target) continue;
+      const newIndices = [...indices, i];
+      const newNextStart = allowRepeat ? i : i + 1;
+      stack.push({ indices: newIndices, sum: newSum, nextStart: newNextStart });
+    }
+  }
+}
+
+function buildResult(indices) {
+  const letters  = indices.map(i => EBCED[i]);
+  const arabic   = [...letters].reverse().map(l => l.ar).join('');
+  const formula  = letters.map(l => l.val).join(' + ');
+  const count    = letters.length;
+  const isDirect = count === 1;
+  return { arabic, formula, count, isDirect, letters };
+}
+
+function sortResults(results, mode) {
+  switch (mode) {
+    case 'fewest':  return [...results].sort((a,b) => a.count - b.count);
+    case 'highest': return [...results].sort((a,b) => Math.max(...b.letters.map(l=>l.val)) - Math.max(...a.letters.map(l=>l.val)));
+    case 'lowest':  return [...results].sort((a,b) => Math.min(...a.letters.map(l=>l.val)) - Math.min(...b.letters.map(l=>l.val)));
+    default: return results;
+  }
+}
+
+function renderItem(result, index) {
+  const item = document.createElement('div');
+  item.className = 'result-item' + (result.isDirect ? ' direct' : '');
+  item.style.animationDelay = `${index * 0.05}s`;
+  item.innerHTML = `
+    <div class="result-arabic" dir="rtl">${result.arabic}</div>
+    <div class="result-right">
+      ${result.isDirect ? '<span class="direct-badge">Direct</span>' : ''}
+      <span class="result-formula">${result.formula} = ${result.letters.reduce((s,l)=>s+l.val,0)}</span>
+      <span class="result-count">${result.count} letter${result.count>1?'s':''}</span>
+    </div>`;
+  return item;
+}
+
+function loadBatch() {
+  const pageSize = parseInt(document.getElementById('pageSize').value) || 5;
+  const sortMode = document.getElementById('sortMode').value;
+  const batch = [];
+  let i = 0;
+  while (i < pageSize) {
+    const next = generator.next();
+    if (next.done) { generatorDone = true; break; }
+    batch.push(next.value);
+    i++;
+  }
+  if (batch.length === 0) { showExhausted(); return; }
+  const sorted = sortResults(batch, sortMode);
+  sorted.sort((a,b) => (b.isDirect ? 1 : 0) - (a.isDirect ? 1 : 0));
+  const list = document.getElementById('resultsList');
+  sorted.forEach((r, idx) => list.appendChild(renderItem(r, idx)));
+  totalShown += sorted.length;
+  document.getElementById('resultsCount').textContent = `${totalShown} shown`;
+  document.getElementById('continueBtn').style.display = generatorDone ? 'none' : 'flex';
+  if (generatorDone) showExhausted();
+}
+
+function showExhausted() {
+  document.getElementById('continueBtn').style.display = 'none';
+  document.getElementById('exhaustedMsg').style.display = 'block';
+}
+
+function calculate() {
+  const raw         = document.getElementById('numberInput').value;
+  const allowRepeat = document.getElementById('allowRepeat').checked;
+  const sortMode    = document.getElementById('sortMode').value;
+  const n = sanitize(raw);
+  if (n === null || n === 0) {
+    showMessage('Zero has no form. Enter a positive number.', 'error');
+    hideResults(); return;
+  }
+  hideMessage();
+  const paramKey = `${n}|${allowRepeat}`;
+  if (paramKey !== lastParams) {
+    lastParams    = paramKey;
+    generator     = combinationGenerator(n, allowRepeat);
+    generatorDone = false;
+    totalShown    = 0;
+    document.getElementById('resultsList').innerHTML = '';
+    document.getElementById('exhaustedMsg').style.display = 'none';
+  }
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resultsTitle').textContent = `Combinations for ${n}`;
+  loadBatch();
+}
+
+function reset() {
+  generator = null; generatorDone = false; totalShown = 0; lastParams = null;
+  document.getElementById('resultsList').innerHTML = '';
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('exhaustedMsg').style.display = 'none';
+  document.getElementById('continueBtn').style.display = 'none';
+  document.getElementById('numberInput').value = '';
+  hideMessage();
+}
+
+function showMessage(text, type='') {
+  const box = document.getElementById('messageBox');
+  box.textContent = text;
+  box.className = 'message-box' + (type ? ' ' + type : '');
+  box.style.display = 'block';
+}
+function hideMessage() { document.getElementById('messageBox').style.display = 'none'; }
+function hideResults()  { document.getElementById('resultsSection').style.display = 'none'; }
+
+function renderEbcedTable() {
+  const container = document.getElementById('ebcedTable');
+  EBCED.forEach(letter => {
+    const cell = document.createElement('div');
+    cell.className = 'ebced-cell';
+    cell.innerHTML = `<span class="ar">${letter.ar}</span><span class="val">${letter.val}</span><span class="name">${letter.name}</span>`;
+    container.appendChild(cell);
+  });
+}
+
+document.getElementById('calculateBtn').addEventListener('click', calculate);
+document.getElementById('resetBtn').addEventListener('click', reset);
+document.getElementById('continueBtn').addEventListener('click', loadBatch);
+document.getElementById('numberInput').addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+['allowRepeat', 'sortMode'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => { lastParams = null; });
+});
+
+renderEbcedTable();
+</script>
+</body>
+</html>
