@@ -66,7 +66,7 @@ There is no single correct answer — the meaning depends entirely on context an
 Download `ebced_single.html` and open it in any browser. No installation, no server, no internet required.
 
 ```bash
-git clone https://github.com/yourusername/ebced-reverse-calculator.git
+git clone https://github.com/SeyyidKadir/ebced-reverse-calculator.git
 # open ebced_single.html in your browser
 ```
 
